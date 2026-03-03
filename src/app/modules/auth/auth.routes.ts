@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AuthControllers } from "./auth.controller";
 import { checkAuth } from "../../middlewares/checkAuth";
+import { Role } from "../user/user.interface";
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.post("/login/phone", AuthControllers.loginWithPhone);
 router.post("/refresh-token", AuthControllers.refreshToken);
 
 // Protected routes
-router.get("/me", checkAuth("user", "admin"), AuthControllers.getMe);
+router.get("/me", checkAuth(...Object.values(Role)), AuthControllers.getMe);
 router.post("/logout", AuthControllers.logout);
 
 export const authRoutes = router;

@@ -168,7 +168,7 @@ const getMe = async (cookies: any): Promise<any> => {
   const {
     _id,
     email: userEmail,
-    name,
+    firstName,
     profileImage,
     isProfileComplete,
     phone,
@@ -178,7 +178,7 @@ const getMe = async (cookies: any): Promise<any> => {
   return {
     id: _id,
     email: userEmail,
-    name,
+    firstName,
     profileImage,
     isProfileComplete,
     phone,

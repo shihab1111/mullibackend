@@ -1,171 +1,156 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
+import {
+  IClubhouseDocument,
+  PostCategory,
+  PostType,
+  PlayStyle,
+  Mobility,
+  Conversation,
+  PostRoundInterest,
+  Visibility,
+  MediaType,
+  ICommentDocument
+} from "./clubhouse.interface ";
 
-export interface IPostDocument extends Document {
-  author: mongoose.Types.ObjectId;
-  category: string;
-  postType: string;
-  playDetails?: {
-    golfCourse?: string;
-    facilities?: string[];
-    flexibleLocation?: boolean;
-    date?: Date;
-    time?: string;
-    playersNeeded?: number;
-    playStyle?: string;
-    mobility?: string;
-    conversation?: string;
-    vibe?: {
-      music?: boolean;
-      beerCart?: boolean;
-      smoker?: boolean;
-      mulligans?: boolean;
-      gimmies?: boolean;
-    };
-    postRoundInterest?: string;
-    notes?: string;
-  };
-  visibility: string;
-  whatsOnYourMind?: string;
-  media: {
-    type: string;
-    url: string;
-  }[];
-  likes: mongoose.Types.ObjectId[];
-  comments: {
-    user: mongoose.Types.ObjectId;
-    text: string;
-    createdAt: Date;
-  }[];
-  commentsCount: number;
-  gifts: {
-    user: mongoose.Types.ObjectId;
-    giftType: string;
-    sentAt: Date;
-  }[];
-  backgroundColor?: string;
-}
-
-const postSchema: Schema<IPostDocument> = new Schema(
+const clubhouseSchema = new Schema<IClubhouseDocument>(
   {
     author: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-
-    // STEP 1: CATEGORY
     category: {
       type: String,
-      enum: [
-        "find_golf_buddy",
-        "rate_my_swing",
-        "local_chatter",
-        "experts_only",
-        "ladies_only",
-      ],
+      enum: Object.values(PostCategory),
       required: true,
     },
-
-    // STEP 2: POST TYPE
     postType: {
       type: String,
-      enum: ["play", "practice", "match"],
+      enum: Object.values(PostType),
       required: true,
     },
-
-    // PLAY DETAILS
     playDetails: {
       golfCourse: String,
       facilities: [String],
-      flexibleLocation: {
-        type: Boolean,
-        default: false,
-      },
+      location: String,
+      flexibleLocation: { type: Boolean, default: false },
       date: Date,
       time: String,
       playersNeeded: Number,
       playStyle: {
         type: String,
-        enum: ["quick_3", "quick_4", "social_slow"],
+        enum: Object.values(PlayStyle),
+      },
+      handicapRange: {
+        lowest: { type: Number },
+        highest: { type: Number }
       },
       mobility: {
         type: String,
-        enum: ["walking", "cart"],
+        enum: Object.values(Mobility),
       },
       conversation: {
         type: String,
-        enum: ["quiet_focused", "friendly_respectful", "chill_chatty"],
+        enum: Object.values(Conversation),
       },
       vibe: {
-        music: Boolean,
-        beerCart: Boolean,
-        smoker: Boolean,
-        mulligans: Boolean,
-        gimmies: Boolean,
+        music: { type: Boolean, default: false },
+        beerCart: { type: Boolean, default: false },
+        smoker: { type: Boolean, default: false },
+        mulligans: { type: Boolean, default: false },
+        gimmies: { type: Boolean, default: false },
       },
       postRoundInterest: {
         type: String,
-        enum: ["grab_drink", "practice_more", "head_home"],
+        enum: Object.values(PostRoundInterest),
       },
       notes: String,
     },
-
-    // STEP 3: CREATE POST
     visibility: {
       type: String,
-      enum: ["public", "friends", "private"],
-      default: "public",
+      enum: Object.values(Visibility),
+      default: Visibility.PUBLIC,
     },
-
-    whatsOnYourMind: String,
-
+    whatsOnYourMind: { type: String, trim: true },
     media: [
       {
         type: {
           type: String,
-          enum: ["image", "video", "gif"],
+          enum: Object.values(MediaType)
         },
-        url: String,
+        url: { type: String, required: true },
       },
     ],
-
     backgroundColor: String,
-
-    // HOME PAGE INTERACTIONS
-    likes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-
-    comments: [
-      {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        text: String,
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
-    commentsCount: {
-      type: Number,
-      default: 0,
-    },
-
+    likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    likesCount: { type: Number, default: 0 },
+    commentsCount: { type: Number, default: 0 },
     gifts: [
       {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        user: { type: Schema.Types.ObjectId, ref: "User" },
         giftType: String,
-        sentAt: Date,
+        sentAt: { type: Date, default: Date.now },
       },
     ],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
-export const Post: Model<IPostDocument> = mongoose.model<IPostDocument>(
-  "Post",
-  postSchema
+// Optional: Add an index for faster searching by category/author
+clubhouseSchema.index({ author: 1, category: 1 });
+
+export const Post: Model<IClubhouseDocument> = mongoose.model<IClubhouseDocument>("Post", clubhouseSchema);
+
+const commentSchema = new Schema<ICommentDocument>(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    post: {
+      type: Schema.Types.ObjectId,
+      ref: "Post",
+      required: true,
+    },
+    text: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    parentId: {
+      type: Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null,
+    },
+    likes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    likesCount: {
+      type: Number,
+      default: 0,
+    },
+  },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+commentSchema.index({ post: 1, createdAt: -1 });
+commentSchema.index({ parentId: 1 });
+
+export const Comment: Model<ICommentDocument> = mongoose.model<ICommentDocument>(
+  "Comment",
+  commentSchema
 );
 
 export default Post;
-

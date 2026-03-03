@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Post } from "./clubhouse.model";
+import mongoose from "mongoose";
+import { Post, Comment } from "./clubhouse.model";
 
 export const createPostService = async (
   data: any,
   userId: string
 ): Promise<any> => {
-  // make sure author in payload is ignored
-  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
   delete data.author;
 
   const post = await Post.create({
@@ -28,46 +28,135 @@ export const getHomeFeedService = async (): Promise<any[]> => {
 export const likePostService = async (
   user: any,
   postId: string
-): Promise<{ totalLikes: number; postId: string }> => {
-  const post = await Post.findByIdAndUpdate(
-    postId,
-    { $addToSet: { likes: user.id } },
-    { new: true }
-  );
+): Promise<{ totalLikes: number; liked: boolean }> => {
 
-  if (!post) {
-    throw new Error("Post not found");
-  }
-
-  return {
-    totalLikes: post.likes.length,
-    postId: post._id.toString(),
-  };
-};
-
-export const commentPostService = async (
-  user: any,
-  postId: string,
-  text: string
-): Promise<any> => {
   const post = await Post.findById(postId);
   if (!post) throw new Error("Post not found");
 
-  post.comments.push({
-    user: user.id,
-    text,
-    createdAt: new Date(),
-  });
+  const userId = user.id.toString();
 
-  post.commentsCount = post.comments.length;
+  const alreadyLiked = post.likes.some(
+    (id: any) => id.toString() === userId
+  );
 
-  await post.save();
+  let updatedPost;
+
+  if (alreadyLiked) {
+
+    updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $pull: { likes: userId },
+        $inc: { likesCount: -1 }
+      },
+      { new: true }
+    );
+  } else {
+
+    updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $addToSet: { likes: userId },
+        $inc: { likesCount: 1 }
+      },
+      { new: true }
+    );
+  }
+  if (updatedPost!.likesCount < 0) {
+    updatedPost!.likesCount = 0;
+    await updatedPost!.save();
+  }
 
   return {
-    postId: post._id,
-    totalComments: post.commentsCount,
-    latestComment: post.comments[post.comments.length - 1],
+    totalLikes: updatedPost!.likesCount,
+    liked: !alreadyLiked,
   };
+};
+
+export const createCommentService = async (
+  userId: string,
+  postId: string,
+  payload: any
+): Promise<any> => {
+  const { text } = payload;
+
+  const isPostExist = await Post.findById(postId);
+  if (!isPostExist) {
+    throw new Error("Post not found");
+  }
+
+  const result = await Comment.create({
+    user: userId,
+    post: postId,
+    text,
+  
+  });
+
+  // Increment comment count in Post
+  await Post.findByIdAndUpdate(postId, {
+    $inc: { commentsCount: 1 },
+  });
+
+  return result;
+};
+
+export const getCommentsByPostService = async (postId: string): Promise<any[]> => {
+  const result = await Comment.find({ post: postId, parentId: null })
+    .populate("user", "name profileImage skillLevel")
+    .sort({ createdAt: -1 });
+
+  const commentsWithReplies = await Promise.all(
+    result.map(async (comment) => {
+      const replies = await Comment.find({ parentId: comment._id })
+    .populate("user", "name profileImage skillLevel")
+    .sort({ createdAt: 1 });
+      return {
+        ...comment.toJSON(),
+        replies,
+      };
+    })
+  );
+
+  return commentsWithReplies;
+};
+
+export const  likeCommentService = async (
+  userId: string,
+  commentId: string
+): Promise<any> => {
+  
+  const comment = await Comment.findById(commentId);
+  
+  if (!comment) {
+    throw new Error("Comment not found");
+  }
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+  const isLiked = comment.likes.some((id) => id.equals(userObjectId));
+
+  let updatedComment;
+
+  if (isLiked) {
+    updatedComment = await Comment.findByIdAndUpdate(
+      commentId,
+      {
+        $pull: { likes: userObjectId },
+        $inc: { likesCount: -1 },
+      },
+      { new: true }
+    ).populate("user", "name profileImage"); 
+  } else {
+
+    updatedComment = await Comment.findByIdAndUpdate(
+      commentId,
+      {
+        $addToSet: { likes: userObjectId },
+        $inc: { likesCount: 1 },
+      },
+      { new: true }
+    ).populate("user", "name profileImage");
+  }
+
+  return updatedComment;
 };
 
 export const sendGiftService = async (
@@ -97,6 +186,8 @@ export const postServices = {
   getHomeFeedService,
   likePostService,
   sendGiftService,
-  commentPostService,
+  createCommentService,
+  getCommentsByPostService,
+  likeCommentService,
 };
 

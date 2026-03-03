@@ -1,83 +1,78 @@
-import multer from "multer";
-import path from "path";
-import { v2 as cloudinary } from "cloudinary";
-import { envVars } from "../config/env";
+import multer, { StorageEngine } from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { envVars } from '../config/env';
 
-// Multer disk storage
-const storage = multer.diskStorage({
+
+cloudinary.config({
+  cloud_name: envVars.cloudinary.cloud_name,
+  api_key: envVars.cloudinary.api_key,
+  api_secret: envVars.cloudinary.api_secret
+});
+
+// 2. Define Multer storage with Types
+const storage: StorageEngine = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(process.cwd(), "/uploads"));
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix);
-  },
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
-// Added memory storage for in-memory file uploads
-const memoryStorage = multer.memoryStorage();
-const memoryUpload = multer({ storage: memoryStorage });
+// 3. Cloudinary upload (Typed with Express.Multer.File)
+const uploadToCloudinary = async (
+  file: Express.Multer.File
+): Promise<UploadApiResponse | null> => {
+  const isVideo = file.mimetype.startsWith("video/");
 
-// Cloudinary config function
-const cloudinaryConfig = () => {
-  cloudinary.config({
-    cloud_name: envVars.cloudinary.cloud_name,
-    api_key: envVars.cloudinary.api_key,
-    api_secret: envVars.cloudinary.api_secret,
-  });
-};
-
-// Upload file to Cloudinary
-const uploadToCloudinary = async (file: Express.Multer.File) => {
-  cloudinaryConfig();
   try {
     const uploadResult = await cloudinary.uploader.upload(file.path, {
       public_id: file.filename,
-      folder: "trucks", // optional folder in Cloudinary
+      resource_type: isVideo ? "video" : "image"
     });
+    
+    console.log('Cloudinary upload result:', uploadResult);
     return uploadResult;
   } catch (error) {
-    console.error("Cloudinary upload error:", error);
-    throw error;
+    console.error('Cloudinary error:', error);
+    return null;
+  }finally {
+    // --- AUTO-CLEANUP ---
+    // This runs whether the upload succeeded or failed
+    if (file.path && fs.existsSync(file.path)) {
+      fs.unlink(file.path, (err) => {
+        if (err) console.error("Error deleting local file:", err);
+        else console.log("Temp file deleted from /uploads");
+      });
+    }
   }
 };
 
-// Delete file from Cloudinary by public_id
-const deleteFromCloudinary = async (publicId: string) => {
-  cloudinaryConfig();
+// 4. Cloudinary deletion (Strictly typed resource types)
+const deleteFromCloudinary = async (
+  publicId: string, 
+  resourceType: "image" | "video" | "raw" = "image"
+): Promise<any | null> => {
   try {
-    const result = await cloudinary.uploader.destroy(publicId);
-    return result; // returns { result: "ok" } if deleted successfully
-  } catch (error) {
-    console.error("Cloudinary delete error:", error);
-    throw error;
-  }
-};
-
-// Upload multiple files to Cloudinary
-const uploadMultipleToCloudinary = async (files: Express.Multer.File[]) => {
-  cloudinaryConfig();
-  try {
-    const uploadPromises = files.map((file) =>
-      cloudinary.uploader.upload(file.path, {
-        public_id: file.filename,
-        folder: "trucks", // optional folder in Cloudinary
-      })
-    );
-    const uploadResults = await Promise.all(uploadPromises);
-    return uploadResults.map((result) => result.secure_url);
-  } catch (error) {
-    console.error("Cloudinary multiple upload error:", error);
-    throw error;
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
+    });
+    console.log("Deleted from Cloudinary:", result);
+    return result;
+  } catch (err) {
+    console.error("Cloudinary deletion error:", err);
+    return null;
   }
 };
 
 export const fileUploader = {
   upload,
-  memoryUpload, // Added memory upload for in-memory file handling
   uploadToCloudinary,
-  deleteFromCloudinary,
-  uploadMultipleToCloudinary,
+  deleteFromCloudinary
 };

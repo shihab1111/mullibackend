@@ -89,25 +89,58 @@ const likePost = catchAsync(async (req: Request, res: Response) => {
 });
 
 /* ================= COMMENT POST ================= */
-const commentPost = catchAsync(async (req: Request, res: Response) => {
+const createComment = catchAsync(async (req: Request, res: Response) => {
   const currentUser: any = (req as any).user;
   if (!currentUser?.id) {
     throw new Error("Authenticated user required to comment on a post");
   }
 
-  const postId = req.params.id;
-  const { text } = req.body as { text?: string };
+  const { postId } = req.params;
 
-  const result = await postServices.commentPostService(
-    currentUser,
+  const result = await postServices.createCommentService(
+    currentUser.id,
     postId as string,
-    text || ""
+    req.body
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 201,
+    message: "Comment added successfully!",
+    data: result,
+  });
+});
+
+/* ================= GET COMMENTS ================= */
+const getComments = catchAsync(async (req: Request, res: Response) => {
+  const result = await postServices.getCommentsByPostService(
+    req.params.postId as string
   );
 
   sendResponse(res, {
     success: true,
     statusCode: 200,
-    message: "Comment added successfully!",
+    message: "Comments fetched successfully!",
+    data: result,
+  });
+});
+
+/* ================= LIKE COMMENT ================= */
+const likeComment = catchAsync(async (req: Request, res: Response) => {
+  const currentUser: any = (req as any).user;
+  if (!currentUser?.id) {
+    throw new Error("Authenticated user required to like a comment");
+  }
+
+  const result = await postServices.likeCommentService(
+    currentUser.id,
+    req.params.commentId as string
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Comment liked successfully!",
     data: result,
   });
 });
@@ -138,6 +171,8 @@ export const postController = {
   getHomeFeed,
   likePost,
   sendGift,
-  commentPost,
+  createComment,
+  getComments,
+  likeComment,
 };
 

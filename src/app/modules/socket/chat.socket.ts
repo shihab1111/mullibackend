@@ -5,7 +5,7 @@ export const chatSocket = (io: Server) => {
   io.on("connection", (socket: Socket) => {
     console.log(" [Chat] client connected:", socket.id);
 
-    // ✅ Join only own personal room
+    // Join only own personal room
     socket.on("join-chat", (userId: string) => {
       if (!userId) return;
 
@@ -17,7 +17,7 @@ export const chatSocket = (io: Server) => {
       if (!userId) return;
 
       socket.leave(userId);
-      console.log(`🚪 ${socket.id} left room: ${userId}`);
+      console.log(` ${socket.id} left room: ${userId}`);
     });
 
     socket.on("disconnect", () => {
