@@ -145,21 +145,8 @@ const loginWithPhone = async (
 };
 
 // Get current user from cookies
-const getMe = async (cookies: any): Promise<any> => {
-  const accessToken = cookies?.accessToken;
-
-  if (!accessToken) {
-    throw new Error("Access token missing");
-  }
-
-  const decoded = verifyToken(accessToken, envVars.JWT_ACCESS_SECRET);
-
-  if (typeof decoded === "string" || !decoded || typeof (decoded as any).email !== "string") {
-    throw new Error("Invalid token payload");
-  }
-
-  const email = (decoded as any).email as string;
-
+const getMe = async (authUser: any): Promise<any> => {
+  const email = authUser.email
   const user = await User.findOne({ email });
   if (!user) {
     throw new Error("User not found");

@@ -5,7 +5,6 @@ import { JwtPayload } from "jsonwebtoken";
 import { catchAsync } from "../../utils/catchAsync";
 
 import { StatusCodes } from "http-status-codes";
-import User from "../user/user.model";
 import { sendResponse } from "../../utils/sendResponse";
 
 const sendMessage = catchAsync(
@@ -59,19 +58,10 @@ const getMessages = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getAdmin = async (req: Request, res: Response) => {
- const admins = await User.find({ role: "ADMIN" }).select("_id full_name role")
 
-  sendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: "Admins fetched successfully",
-    data: admins,
-  });
-};
 export const ChatController = {
-  sendMessage, // assuming this is defined elsewhere
+  sendMessage, 
   getConversations,
   getMessages,
-  getAdmin,
+
 };

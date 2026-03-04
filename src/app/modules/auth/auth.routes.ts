@@ -18,6 +18,7 @@ router.post("/refresh-token", AuthControllers.refreshToken);
 
 // Protected routes
 router.get("/me", checkAuth(...Object.values(Role)), AuthControllers.getMe);
+
 router.post("/logout", AuthControllers.logout);
 
 export const authRoutes = router;

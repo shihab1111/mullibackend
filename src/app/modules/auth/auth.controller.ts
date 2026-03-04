@@ -148,8 +148,8 @@ const loginWithPhone = catchAsync(async (req: Request, res: Response) => {
 
 // Get current user
 const getMe = catchAsync(async (req: Request, res: Response) => {
-  const userSession = req.cookies;
-  const result = await AuthServices.getMe(userSession);
+  const user=req.user
+  const result = await AuthServices.getMe(user);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

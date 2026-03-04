@@ -6,6 +6,7 @@ import { clubhouseRoutes } from "../modules/Clubhouse/clubhouse.routes";
 import { discoveryRoutes } from "../modules/Discovery/discovery.routes";
 import { swipeRouter } from "../modules/Swipe/swipe.routes";
 import { matchRoutes } from "../modules/Liked/match.routes";
+import { chatRoutes } from "../modules/chat/chat.route";
 
 const router = express.Router();
 
@@ -33,6 +34,10 @@ const moduleRoutes = [
   {
     path: "/match",
     route: matchRoutes,
+  },
+  {
+    path: "/chat",
+    route: chatRoutes,
   },
 ];
 

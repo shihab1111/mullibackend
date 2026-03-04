@@ -80,7 +80,7 @@ const notifyChatMessage = async (
     senderId,
     receiverId,
     chatId: String(messageDoc?._id),
-    deepLink: `/chat/${senderId}`,
+    
   };
 
   // Save in-app notification
