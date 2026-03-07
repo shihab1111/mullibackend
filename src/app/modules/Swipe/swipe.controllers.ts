@@ -8,7 +8,7 @@ import { sendResponse } from "../../utils/sendResponse";
 
 export const passUser = catchAsync(async (req: Request, res: Response) => {
   const fromUser = (req as any).user?.id;
-  const { toUser } = req.body as { toUser: string };
+  const toUser = req.params.id;
 
   await Swipe.create({
     fromUser,
@@ -29,7 +29,7 @@ export const likeUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const fromUser = (req as any).user?.id;
-      const { toUser } = req.body as { toUser: string };
+       const toUser = req.params.id;
 
       if (fromUser === toUser) {
         return sendResponse(res, {
@@ -94,27 +94,27 @@ export const likeUser = catchAsync(
   }
 );
 
-export const giftUser = catchAsync(async (req: Request, res: Response) => {
-  const fromUser = (req as any).user?.id;
-  const { toUser, coins } = req.body as { toUser: string; coins: number };
+// export const giftUser = catchAsync(async (req: Request, res: Response) => {
+//   const fromUser = (req as any).user?.id;
+//   const { toUser, coins } = req.body as { toUser: string; coins: number };
 
-  await User.findByIdAndUpdate(fromUser, {
-    $inc: { coins: -coins },
-  });
+//   await User.findByIdAndUpdate(fromUser, {
+//     $inc: { coins: -coins },
+//   });
 
-  await Swipe.create({
-    fromUser,
-    toUser,
-    action: "gift",
-  });
+//   await Swipe.create({
+//     fromUser,
+//     toUser,
+//     action: "gift",
+//   });
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Gift sent",
-    data: null,
-  });
-});
+//   sendResponse(res, {
+//     statusCode: 200,
+//     success: true,
+//     message: "Gift sent",
+//     data: null,
+//   });
+// });
 
 export const getUsersWhoLikedMe = catchAsync(
   async (req: Request, res: Response) => {

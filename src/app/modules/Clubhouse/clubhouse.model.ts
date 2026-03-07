@@ -9,7 +9,8 @@ import {
   PostRoundInterest,
   Visibility,
   MediaType,
-  ICommentDocument
+  ICommentDocument,
+  VibeType
 } from "./clubhouse.interface ";
 
 const clubhouseSchema = new Schema<IClubhouseDocument>(
@@ -41,10 +42,13 @@ const clubhouseSchema = new Schema<IClubhouseDocument>(
         type: String,
         enum: Object.values(PlayStyle),
       },
+      tees:{ type: String },
+      yardage:{ type: Number },
       handicapRange: {
         lowest: { type: Number },
         highest: { type: Number }
       },
+       flexibledate: { type: Boolean, default: false },
       mobility: {
         type: String,
         enum: Object.values(Mobility),
@@ -54,11 +58,8 @@ const clubhouseSchema = new Schema<IClubhouseDocument>(
         enum: Object.values(Conversation),
       },
       vibe: {
-        music: { type: Boolean, default: false },
-        beerCart: { type: Boolean, default: false },
-        smoker: { type: Boolean, default: false },
-        mulligans: { type: Boolean, default: false },
-        gimmies: { type: Boolean, default: false },
+        type: String,
+        enum: Object.values(VibeType),
       },
       postRoundInterest: {
         type: String,

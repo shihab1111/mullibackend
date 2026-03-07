@@ -170,6 +170,8 @@ export const discoveryService = async (
     playstyle: u.playstyle,
     height: u.height,
     religion: u.religion,
+    handicaprange: u.handicaprange, 
+    tcp:"N/A"
   }));
 
   return transformed;

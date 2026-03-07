@@ -2,52 +2,59 @@ import { Types, Document } from "mongoose";
 
 // --- ENUMS ---
 export enum PostCategory {
-  FIND_GOLF_BUDDY = "find_golf_buddy",
-  RATE_MY_SWING = "rate_my_swing",
-  LOCAL_CHATTER = "local_chatter",
-  EXPERTS_ONLY = "experts_only",
-  LADIES_ONLY = "ladies_only",
+  FIND_GOLF_BUDDY = "FIND_GOLF_BUDDY",
+  RATE_MY_SWING = "RATE_MY_SWING",
+  LOCAL_CHATTER = "LOCAL_CHATTER",
+  EXPERTS_ONLY = "EXPERTS_ONLY",
+  LADIES_ONLY = "LADIES_ONLY",
 }
 
 export enum PostType {
-  PLAY = "play",
-  PRACTICE = "practice",
-  MATCH = "match",
+  PLAY = "PLAY",
+  PRACTICE = "PRACTICE",
+  MATCH = "MATCH",
 }
 
 export enum PlayStyle {
-  QUICK_3 = "quick_3",
-  QUICK_4 = "quick_4",
-  SOCIAL_SLOW = "social_slow",
+  QUICK_3 = "QUICK_3",
+  QUICK_4 = "QUICK_4",
+  SOCIAL_SLOW = "SOCIAL_SLOW",
 }
 
 export enum Mobility {
-  WALKING = "walking",
-  CART = "cart",
+  WALKING = "WALKING",
+  CART = "CART",
 }
 
 export enum Conversation {
-  QUIET_FOCUSED = "quiet_focused",
-  FRIENDLY_RESPECTFUL = "friendly_respectful",
-  CHILL_CHATTY = "chill_chatty",
+  QUIET_FOCUSED = "QUIET_FOCUSED",
+  FRIENDLY_RESPECTFUL = "FRIENDLY_RESPECTFUL",
+  CHILL_CHATTY = "CHILL_CHATTY",
 }
 
 export enum PostRoundInterest {
-  GRAB_DRINK = "grab_drink",
-  PRACTICE_MORE = "practice_more",
-  HEAD_HOME = "head_home",
+  GRAB_DRINK = "GRAB_DRINK",
+  PRACTICE_MORE = "PRACTICE_MORE",
+  HEAD_HOME = "HEAD_HOME",
 }
 
 export enum Visibility {
-  PUBLIC = "public",
-  FRIENDS = "friends",
-  PRIVATE = "private",
+  PUBLIC = "PUBLIC",
+  FRIENDS = "FRIENDS",
+  PRIVATE = "PRIVATE",
 }
 
 export enum MediaType {
-  IMAGE = "image",
-  VIDEO = "video",
-  GIF = "gif",
+  IMAGE = "IMAGE",
+  VIDEO = "VIDEO",
+  GIF = "GIF",
+}
+export enum VibeType {
+  MUSIC = "MUSIC",
+  BEER_CART = "BEER_CART",
+  SMOKER = "SMOKER",
+  MULLIGANS = "MULLIGANS",
+  GIMMIES = "GIMMIES",
 }
 
 // --- SUB-INTERFACES ---
