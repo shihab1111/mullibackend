@@ -11,7 +11,7 @@ export const notificationSocket = (io: Server) => {
 
     socket.on("leave-notification", (userId: string) => {
       socket.leave(`notification_${userId}`);
-      console.log(`🚪 ${socket.id} left room: notification_${userId}`);
+      console.log(`${socket.id} left room: notification_${userId}`);
     });
 
     socket.on("disconnect", () => {

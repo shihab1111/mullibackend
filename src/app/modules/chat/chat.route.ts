@@ -19,6 +19,7 @@ router.get(
   checkAuth(...Object.values(Role)),
   ChatController.getConversations,
 );
+
 router.get(
   "/messages/:otherUserId",
   checkAuth(...Object.values(Role)),

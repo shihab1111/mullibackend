@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { chatService } from "./chat.service";
 import { JwtPayload } from "jsonwebtoken";
 import { catchAsync } from "../../utils/catchAsync";
+import { fileUploader } from "../../helpers/fileUpload";
 
 import { StatusCodes } from "http-status-codes";
 import { sendResponse } from "../../utils/sendResponse";
@@ -12,10 +13,28 @@ const sendMessage = catchAsync(
     const { receiverId } = req.params;
     const user = req.user as JwtPayload;
 
+    const files = req.files as Express.Multer.File[] | undefined;
+    let imageUrl = "";
+
+    if (files && files.length > 0) {
+      const uploadResult = await fileUploader.uploadToCloudinary(files[0]);
+      if (uploadResult) {
+        imageUrl = uploadResult.secure_url;
+      }
+    }
+
+    const messageData = {
+      ...req.body,
+      message: {
+        ...req.body.message,
+        image: imageUrl,
+      },
+    };
+
     const result = await chatService.sendMessageService(
       user,
       receiverId as string,
-      req.body,
+      messageData,
     );
 
     // send response

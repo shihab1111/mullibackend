@@ -36,13 +36,13 @@ const uploadToCloudinary = async (
       public_id: file.filename,
       resource_type: isVideo ? "video" : "image"
     });
-    
+
     console.log('Cloudinary upload result:', uploadResult);
     return uploadResult;
   } catch (error) {
     console.error('Cloudinary error:', error);
     return null;
-  }finally {
+  } finally {
     // --- AUTO-CLEANUP ---
     // This runs whether the upload succeeded or failed
     if (file.path && fs.existsSync(file.path)) {
@@ -56,7 +56,7 @@ const uploadToCloudinary = async (
 
 // 4. Cloudinary deletion (Strictly typed resource types)
 const deleteFromCloudinary = async (
-  publicId: string, 
+  publicId: string,
   resourceType: "image" | "video" | "raw" = "image"
 ): Promise<any | null> => {
   try {

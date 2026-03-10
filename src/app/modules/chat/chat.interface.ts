@@ -2,7 +2,6 @@ import { Types } from "mongoose";
 
 export enum MessageStatus {
   SENT = "SENT",
-  DELIVERED = "DELIVERED",
   SEEN = "SEEN",
 }
 

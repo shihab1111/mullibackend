@@ -13,17 +13,17 @@ const sendMessageService = async (
   receiverId: string,
   payload: Partial<IMessage>,
 ) => {
-  const senderId = user.userId || user.id;  
+  const senderId = user.userId || user.id;
 
   // Block sending message to self
   if (String(senderId) === String(receiverId)) {
     throw new AppError(400, "Cannot send message to yourself");
   }
 
-  // Load sender + receiver roles
+
   const [senderUser, receiverUser] = await Promise.all([
-    User.findById(senderId).select("_id full_name role"),
-    User.findById(receiverId).select("_id full_name role"),
+    User.findById(senderId).select("_id firstName lastName"), 
+    User.findById(receiverId).select("_id firstName lastName"),
   ]);
 
   if (!senderUser) throw new AppError(401, "Invalid sender");
@@ -59,7 +59,7 @@ const sendMessageService = async (
 
 const getConversationsService = async (user: JwtPayload) => {
   const userId = new Types.ObjectId(user.userId || user.id);
-console.log("User ID in getConversationsService:", userId);
+  console.log("User ID in getConversationsService:", userId);
   const conversations = await Message.aggregate([
     {
       $match: {
@@ -111,7 +111,7 @@ console.log("User ID in getConversationsService:", userId);
           _id: 1,
           full_name: 1,
           email: 1,
-          profile_picture: 1,
+          profileImage: 1,
         },
         lastMessage: 1,
         unreadCount: 1,
