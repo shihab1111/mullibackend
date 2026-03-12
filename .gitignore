@@ -6,4 +6,4 @@ dist/
 uploads/*
 !uploads/.gitkeep
 *.log
-keys/*
+keys/
