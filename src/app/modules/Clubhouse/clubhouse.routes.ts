@@ -29,5 +29,11 @@ router.delete("/posts/:id", checkAuth(...Object.values(Role)), postController.de
 router.delete("/comment/:id", checkAuth(...Object.values(Role)), postController.deleteComment);
 router.post("/report/:postId",checkAuth(...Object.values(Role)), postController.reportPost);
 
+
+router.patch("/category-setting/toggle", checkAuth(...Object.values(Role)), postController.toggleCategorySetting);
+router.get("/category-setting", checkAuth(...Object.values(Role)), postController.getCategorySettings);
+
+router.get("/category-stats", checkAuth(...Object.values(Role)), postController.getCategoryStats);
+
 export const clubhouseRoutes = router;
 

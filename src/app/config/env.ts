@@ -164,6 +164,7 @@ const loadEnvVariables = (): EnvConfig => {
   phoneNumber: process.env.TWILIO_PHONE_NUMBER as string,
 },
    FIREBASE_SERVICE_ACCOUNT_PATH:process.env.FIREBASE_SERVICE_ACCOUNT_PATH as string,
+   
   };
 };
 

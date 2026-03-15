@@ -108,6 +108,10 @@ export interface IReport {
   type: ReportType;
   reportedAt: Date;
 }
+export interface ICategorySetting {
+  category: PostCategory;
+  isActive: boolean;
+}
 // --- MAIN INTERFACE ---
 export interface IClubhouse {
   author: Types.ObjectId;

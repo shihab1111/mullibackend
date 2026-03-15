@@ -229,6 +229,41 @@ const reportPost = catchAsync(async (req: Request, res: Response) => {
     data: reports,
   });
 });
+
+const toggleCategorySetting = catchAsync(async (req: Request, res: Response) => {
+  const { category, isActive } = req.body;
+  const result = await postServices.toggleCategorySettingService(category, isActive);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Category setting updated successfully",
+    data: result,
+  });
+});
+
+const getCategorySettings = catchAsync(async (req: Request, res: Response) => {
+  const result = await postServices.getCategorySettingsService();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Category settings retrieved successfully",
+    data: result,
+  });
+});
+
+const getCategoryStats = catchAsync(async (req: Request, res: Response) => {
+  const result = await postServices.getCategoryStatsService();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Category statistics retrieved successfully",
+    data: result,
+  });
+});
+
 export const postController = {
   createPost,
   getHomeFeed,
@@ -240,6 +275,9 @@ export const postController = {
   replyToComment,
   deletePost,
   deleteComment,
-  reportPost 
+  reportPost,
+  toggleCategorySetting,
+  getCategorySettings,
+  getCategoryStats
 };
 

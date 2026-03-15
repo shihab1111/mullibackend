@@ -11,7 +11,8 @@ import {
   MediaType,
   ICommentDocument,
   VibeType,
-  ReportType
+  ReportType,
+  ICategorySetting
 } from "./clubhouse.interface ";
 import { report } from "process";
 
@@ -159,4 +160,25 @@ export const Comment: Model<ICommentDocument> = mongoose.model<ICommentDocument>
   commentSchema
 );
 
+
+
+const categorySettingSchema = new Schema<ICategorySetting>(
+  {
+    category: {
+      type: String,
+      enum: Object.values(PostCategory),
+      required: true,
+      unique: true
+    },
+    isActive: {
+      type: Boolean,
+      default: true
+    }
+  },
+  { timestamps: true }
+);
+
+export const CategorySetting: Model<ICategorySetting> =
+  mongoose.model<ICategorySetting>("CategorySetting", categorySettingSchema);
+  
 export default Post;

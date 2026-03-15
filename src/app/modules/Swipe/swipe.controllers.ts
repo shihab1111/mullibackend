@@ -160,13 +160,14 @@ export const likeUser = catchAsync(
           { status: "matched" }
         );
 
-        let matchData = await Match.findOne({
-          users: { $all: [fromUser, toUser] },
-        });
+        const [u1, u2] = [fromUser, toUser].sort();
+        let matchData = await Match.findOne({ user1: u1, user2: u2 });
 
         if (!matchData) {
           matchData = await Match.create({
             users: [fromUser, toUser],
+            user1: u1,
+            user2: u2,
             matchType: "mutual_like",
           });
         }
@@ -199,13 +200,14 @@ export const likeUser = catchAsync(
             { status: "matched" }
           );
 
-          let matchData = await Match.findOne({
-            users: { $all: [fromUser, toUser] },
-          });
+          const [u1, u2] = [fromUser, toUser].sort();
+          let matchData = await Match.findOne({ user1: u1, user2: u2 });
 
           if (!matchData) {
             matchData = await Match.create({
               users: [fromUser, toUser],
+              user1: u1,
+              user2: u2,
               matchType: "profile_based",
             });
           }

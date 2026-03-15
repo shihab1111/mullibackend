@@ -6,13 +6,14 @@ import { StatusCodes } from "http-status-codes";
 
 const createSubscription = async (payload: ISubscription) => {
   // Check if active subscription already exists
+  //have to add validation latger for create subscription
   const existingSub = await Subscription.findOne({
     userId: payload.userId,
     status: SubscriptionStatus.ACTIVE,
   });
 
   if (existingSub) {
-    throw new AppError(
+    throw new AppError(  
       StatusCodes.BAD_REQUEST,
       "User already has an active subscription"
     );

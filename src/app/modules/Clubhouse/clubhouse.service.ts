@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from "mongoose";
-import { Post, Comment } from "./clubhouse.model";
-import { ReportType } from "./clubhouse.interface ";
+import { Post, Comment, CategorySetting } from "./clubhouse.model";
+import { ReportType, PostCategory } from "./clubhouse.interface ";
 
 const getReplies = async (commentId: string): Promise<any[]> => {
   const replies = await Comment.find({ parentId: commentId })
@@ -308,6 +308,104 @@ const userObjectId = new mongoose.Types.ObjectId(userId);
 
   return post.reports;
 };
+
+export const toggleCategorySettingService = async (
+  category: string,
+  isActive: boolean
+): Promise<any> => {
+  const result = await CategorySetting.findOneAndUpdate(
+    { category },
+    { isActive },
+    { new: true, upsert: true }
+  );
+  return result;
+};
+
+export const getCategorySettingsService = async (): Promise<any> => {
+  return await CategorySetting.find({});
+};
+
+export const getCategoryStatsService = async (): Promise<any> => {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  const sixtyDaysAgo = new Date();
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+  const stats = await Post.aggregate([
+    {
+      $facet: {
+        allTime: [
+          {
+            $group: {
+              _id: '$category',
+              totalPosts: { $sum: 1 },
+              uniqueUsers: { $addToSet: '$author' }
+            }
+          }
+        ],
+        lastMonth: [
+          { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+          {
+            $group: {
+              _id: '$category',
+              totalPosts: { $sum: 1 }
+            }
+          }
+        ],
+        prevMonth: [
+          { $match: { createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } } },
+          {
+            $group: {
+              _id: '$category',
+              totalPosts: { $sum: 1 }
+            }
+          }
+        ]
+      }
+    }
+  ]);
+
+  const { allTime, lastMonth, prevMonth } = stats[0];
+
+  // Fetch all category settings to determine active status
+  const categorySettings = await CategorySetting.find({});
+  const allCategories = Object.values(PostCategory);
+
+  const result = allCategories.map((category) => {
+    const allTimeData = allTime.find((x: any) => x._id === category);
+    const lmData = lastMonth.find((x: any) => x._id === category);
+    const pmData = prevMonth.find((x: any) => x._id === category);
+
+    const totalPosts = allTimeData ? allTimeData.totalPosts : 0;
+    const totalUsers = allTimeData ? allTimeData.uniqueUsers.length : 0;
+
+    const lastMonthCount = lmData ? lmData.totalPosts : 0;
+    const prevMonthCount = pmData ? pmData.totalPosts : 0;
+
+    let growth = 0;
+    if (prevMonthCount > 0) {
+      growth = ((lastMonthCount - prevMonthCount) / prevMonthCount) * 100;
+    } else if (lastMonthCount > 0) {
+      growth = 100;
+    }
+
+    // Default to true if not explicitly set to false
+    const setting = categorySettings.find(s => s.category === category);
+    const isActive = setting ? setting.isActive : true;
+
+    return {
+      category,
+      totalPosts,
+      totalUsers,
+      growth: Math.round(growth * 100) / 100,
+      isActive
+    };
+  });
+
+  return result.sort((a: any, b: any) => b.totalPosts - a.totalPosts);
+};
+
 export const postServices = {
   createPostService,
   getHomeFeedService,
@@ -319,6 +417,9 @@ export const postServices = {
   replyToCommentService,
   deletePostService,
   deleteCommentService,
-  reportPostService
+  reportPostService,
+  toggleCategorySettingService,
+  getCategorySettingsService,
+  getCategoryStatsService
 };
 
