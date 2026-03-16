@@ -16,20 +16,15 @@ router.post("/signup/phone", userControllers.sendPhoneOtp);
 router.post("/signup/phone/verify", userControllers.verifyPhoneOtp);
 
 // Complete User Profile
-router.patch(
-  "/profile/complete",
-  fileUploader.upload.array("image", 6),
-  userControllers.createUser
-);
+router.patch("/profile/complete",fileUploader.upload.array("image", 6),userControllers.createUser);
 
-router.patch(
-  "/update-fcm-token",
-  checkAuth(Role.USER, Role.ADMIN),
-  userControllers.updateFcmToken
-);
-router.post("/block", blockUser);      // Block a user
-router.post("/unblock", unblockUser);  // Unblock a user
-router.get("/blocked", getBlockedUsers); // List blocked users
+router.patch("/update-fcm-token",checkAuth(Role.USER, Role.ADMIN),userControllers.updateFcmToken);
+
+router.post("/block",checkAuth(...Object.values(Role)) ,blockUser);      // Block a user
+router.post("/unblock",checkAuth(...Object.values(Role)), unblockUser);  // Unblock a user
+router.get("/blocked",checkAuth(...Object.values(Role)), getBlockedUsers); // List blocked users
+router.patch("/profile",checkAuth(...Object.values(Role)), userControllers.updateUserProfile);
+
 export const userRoutes = router;
 
 

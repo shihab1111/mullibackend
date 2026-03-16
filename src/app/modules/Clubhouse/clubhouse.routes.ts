@@ -12,6 +12,7 @@ router.post("/posts", checkAuth(...Object.values(Role)), fileUploader.upload.arr
 
 // Public home feed (or restrict with checkAuth if needed)
 router.get("/", postController.getHomeFeed);
+router.get("/posts/:id", postController.getPostById);
 
 // Interactions require auth
 router.post("/like/:id", checkAuth(...Object.values(Role)), postController.likePost);
@@ -25,7 +26,7 @@ router.post("/comment/like/:commentId", checkAuth(...Object.values(Role)), postC
 router.post("/comments/reply/:commentId", checkAuth(...Object.values(Role)), postController.replyToComment);
 
 // Delete Routes
-router.delete("/posts/:id", checkAuth(...Object.values(Role)), postController.deletePost);
+router.delete("/post/:id", checkAuth(...Object.values(Role)), postController.deletePost);
 router.delete("/comment/:id", checkAuth(...Object.values(Role)), postController.deleteComment);
 router.post("/report/:postId",checkAuth(...Object.values(Role)), postController.reportPost);
 

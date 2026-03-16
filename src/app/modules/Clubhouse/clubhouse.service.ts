@@ -227,6 +227,18 @@ export const replyToCommentService = async (
   return reply;
 };
 
+export const getPostByIdService = async (postId: string): Promise<any> => {
+  const post = await Post.findById(postId)
+    .select("-reports")
+    .populate("author", "firstName lastName profileImage skillLevel");
+
+  if (!post) {
+    throw new Error("Post not found");
+  }
+
+  return post;
+};
+
 export const deletePostService = async (
   postId: string,
   userId: string
@@ -409,6 +421,7 @@ export const getCategoryStatsService = async (): Promise<any> => {
 export const postServices = {
   createPostService,
   getHomeFeedService,
+  getPostByIdService,
   likePostService,
   sendGiftService,
   createCommentService,

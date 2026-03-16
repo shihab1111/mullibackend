@@ -153,69 +153,53 @@ const verifyEmailOtp = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const sendPhoneOtp = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { phoneNumber } = req.body as { phoneNumber?: string };
-    if (!phoneNumber) {
-      return sendResponse(res, {
-        statusCode: 400,
-        success: false,
-        message: "Phone required",
-        data: null,
-      });
-    }
+const sendPhoneOtp = catchAsync(async (req: Request, res: Response) => {
+  const { phoneNumber } = req.body as { phoneNumber?: string };
 
-    const result = await userService.createPhoneOtp(phoneNumber);
-
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: result.message,
-      data: { otp: result.otp },
-    });
-  } catch (err: any) {
-    sendResponse(res, {
-      statusCode: 500,
+  if (!phoneNumber) {
+    return sendResponse(res, {
+      statusCode: 400,
       success: false,
-      message: err.message,
+      message: "Phone number is required",
       data: null,
     });
   }
-};
 
-const verifyPhoneOtp = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { phoneNumber, otp } = req.body as {
-      phoneNumber?: string;
-      otp?: string;
-    };
-    if (!phoneNumber || !otp) {
-      return sendResponse(res, {
-        statusCode: 400,
-        success: false,
-        message: "Phone and OTP required",
-        data: null,
-      });
-    }
+  // Call service to generate OTP and send SMS via Twilio
+  const result = await userService.createPhoneOtp(phoneNumber);
 
-    const result = await userService.verifyPhoneOtp(phoneNumber, otp);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: result.message,
+    // OTP is not returned in production for security reasons
+    // data: { otp: result.otp } // optional for testing only
+    data: null,
+  });
+});
 
-    sendResponse(res, {
-      statusCode: result.success ? 200 : 400,
-      success: result.success,
-      message: result.message,
-      data: result.data || null,
-    });
-  } catch (err: any) {
-    sendResponse(res, {
-      statusCode: 500,
+
+const verifyPhoneOtp = catchAsync(async (req: Request, res: Response) => {
+  const { phoneNumber, otp } = req.body as { phoneNumber?: string; otp?: string };
+
+  if (!phoneNumber || !otp) {
+    return sendResponse(res, {
+      statusCode: 400,
       success: false,
-      message: err.message,
+      message: "Phone number and OTP are required",
       data: null,
     });
   }
-};
 
+  const result = await userService.verifyPhoneOtp(phoneNumber, otp);
+
+  sendResponse(res, {
+    statusCode: result.success ? 200 : 400,
+    success: result.success,
+    message: result.message,
+    data: result.data || null,
+  });
+});
 
 
 const updateFcmToken = catchAsync(async (req: Request, res: Response) => {
@@ -281,13 +265,40 @@ export const getBlockedUsers = catchAsync(async (req: Request, res: Response) =>
     data: result,
   });
 });
+export const updateUserProfile = catchAsync(
+  async (req: Request, res: Response) => {
+    const currentUser: any = (req as any).user;
+    const files = req.files as Express.Multer.File[] | undefined;
+    let bodyData: any = {};
+
+    if (req.body.data) {
+      bodyData = JSON.parse(req.body.data);
+    } else {
+      bodyData = req.body;
+    }
+
+    const updatedUser = await userService.updateUserProfileService(
+      currentUser._id,
+      bodyData,
+      files
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  }
+);
 
 export const userControllers = {
   createUser,
   sendEmailOtp,
   verifyEmailOtp,
   sendPhoneOtp,
-  verifyPhoneOtp,
+  verifyPhoneOtp,  
   updateFcmToken,
+  updateUserProfile
 };
 

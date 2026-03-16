@@ -181,6 +181,19 @@ const replyToComment = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPostById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await postServices.getPostByIdService(id as string);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Post fetched successfully!",
+    data: result,
+  });
+});
+
 const deletePost = catchAsync(async (req: Request, res: Response) => {
   const currentUser: any = (req as any).user;
   const { id } = req.params;
@@ -267,6 +280,7 @@ const getCategoryStats = catchAsync(async (req: Request, res: Response) => {
 export const postController = {
   createPost,
   getHomeFeed,
+  getPostById,
   likePost,
   sendGift,
   createComment,

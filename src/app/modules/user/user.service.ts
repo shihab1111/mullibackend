@@ -5,6 +5,9 @@ import { sendOtpEmail } from "../../utils/email.util";
 import { redisClient } from "../../config/redis.config";
 import { createUserTokens } from "../../utils/userTokens";
 import mongoose from "mongoose";
+import { sendOTP } from "../../config/twillio.config";
+import getPlaceNameGoogle from "../../utils/getGoogleLocation";
+import { fileUploader } from "../../helpers/fileUpload";
 
 const OTP_EXPIRE = 3 * 60; // 3 minutes
 
@@ -157,83 +160,65 @@ export const verifyEmailOtp = async (
 };
 
 // GENERATE & SEND PHONE OTP
-export const createPhoneOtp = async (
-  phoneNumber: string
-): Promise<{ otp: string; message: string }> => {
+export const createPhoneOtp = async ( phoneNumber: string): Promise<{ message: string }> => {
   const otp = generateOtp();
   const otpKey = `otp:phone:${phoneNumber}`;
 
-  // Uncomment these when SMS sending & Redis are ready
-  // await redisClient.setex(otpKey, OTP_EXPIRE, otp);
-  // const result = await sendPhoneSms(phoneNumber, otp);
-  // if (!result.success) throw new Error(result.message);
+  await redisClient.setex(otpKey, OTP_EXPIRE, otp);
+  const smsResult = await sendOTP(phoneNumber, otp);
+  if (!smsResult.success) {
+    throw new Error(smsResult.error || "Failed to send OTP");
+  }
 
-  return { otp, message: "OTP sent successfully" };
+  return { message: "OTP sent successfully" };
 };
 
-// VERIFY PHONE OTP (using Redis)
-export const verifyPhoneOtp = async (
-  phone: string,
-  inputOtp: string
-): Promise<OtpResult> => {
-  try {
-    const otpKey = `otp:phone:${phone}`;
+// VERIFY PHONE OTP 
+export const verifyPhoneOtp = async (phone: string,inputOtp: string): Promise<OtpResult> => {
+  const otpKey = `otp:phone:${phone}`;
+  const storedOtp = await redisClient.get(otpKey);
+  if (!storedOtp) return { success: false, message: "OTP expired or not found" };
 
-    // For now, treat as always valid if you haven't wired up Redis/SMS:
-    // const storedOtp = await redisClient.get(otpKey);
-    // if (!storedOtp) return { success: false, message: "OTP expired or not found" };
-    // if (storedOtp !== inputOtp) return { success: false, message: "Invalid OTP" };
-    // await redisClient.del(otpKey);
+  if (storedOtp !== inputOtp) return { success: false, message: "Invalid OTP" };
 
-    let user = await User.findOne({ phone });
+  await redisClient.del(otpKey);
+  let user = await User.findOne({ phone });
 
-    // If user exists & profile complete → LOGIN
-    if (user && user.isProfileComplete && user.isPhoneVerified) {
-      const tokens = createUserTokens(user.toObject());
-
-      return {
-        success: true,
-        message: "Login successful",
-        data: {
-          user: {
-            id: user._id,
-            name: user.firstName || user.name,
-            isProfileComplete: user.isProfileComplete,
-          },
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-        },
-      };
-    }
-
-    // If user doesn't exist → create partial user
-    if (!user) {
-      user = await User.create({
-        phone,
-        isPhoneVerified: true,
-        isProfileComplete: false,
-      });
-    } else {
-      user.isPhoneVerified = true;
-      await user.save();
-    }
-
+  if (user && user.isProfileComplete && user.isPhoneVerified) {
+    const tokens = createUserTokens(user.toObject());
     return {
       success: true,
-      message: "Phone verified successfully",
+      message: "Login successful",
       data: {
-        userId: user._id,
-        isPhoneVerified: true,
-        isProfileComplete: user.isProfileComplete,
+        user: {
+          id: user._id,
+          name: user.firstName || user.name,
+          isProfileComplete: user.isProfileComplete,
+        },
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       },
     };
-  } catch (error: any) {
-    return {
-      success: false,
-      message: error.message,
-    };
   }
+
+  if (!user) {
+    user = await User.create({ phone, isPhoneVerified: true, isProfileComplete: false });
+  } else {
+    user.isPhoneVerified = true;
+    await user.save();
+  }
+
+  return {
+    success: true,
+    message: "Phone verified successfully",
+    data: {
+      userId: user._id,
+      isPhoneVerified: true,
+      isProfileComplete: user.isProfileComplete,
+    },
+  };
 };
+
 export const updateFcmToken = async (
   userId: string,
   fcmToken: string
@@ -290,4 +275,49 @@ export const isBlockedService = async (userId: string, otherUserId: string) => {
   return user.blockedUsers.some(
     (id) => id.toString() === otherUserId
   );
+};
+
+export const updateUserProfileService = async (
+  userId: string,
+  bodyData: any,
+  files?: Express.Multer.File[]
+) => {
+  const updateData: any = { ...bodyData };
+
+  // Handle profile images
+  if (files && files.length > 0) {
+    const uploadResults = await Promise.all(
+      files.map((f) => fileUploader.uploadToCloudinary(f))
+    );
+    const urls = uploadResults
+      .map((r: any) => r?.secure_url)
+      .filter(Boolean);
+    updateData.images = urls;
+    updateData.profileImage = urls[0]; // first image as profile
+  }
+
+  // Handle location if lat/lng provided
+  if (bodyData.lat && bodyData.lng) {
+    const lat = parseFloat(bodyData.lat);
+    const lng = parseFloat(bodyData.lng);
+    const placeName = await getPlaceNameGoogle(lat, lng);
+
+    updateData.location = {
+      type: "Point",
+      coordinates: [lng, lat], // GeoJSON format
+      placeName,
+    };
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    new mongoose.Types.ObjectId(userId),
+    { $set: updateData },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    throw new Error("User not found");
+  }
+
+  return updatedUser;
 };

@@ -1,5 +1,5 @@
 import twilio, { Twilio } from "twilio";
-import { envVars } from "./env.js";
+import { envVars } from "./env";
 
 // Define return type for SMS response
 interface ISendSMSResponse {
