@@ -12,7 +12,7 @@ import { fileUploader } from "../../helpers/fileUpload";
 const OTP_EXPIRE = 3 * 60; // 3 minutes
 
 // CREATE / COMPLETE USER PROFILE
-export const createUser = async (data: any): Promise<any> => {
+ const createUser = async (data: any): Promise<any> => {
   let filter: any = {};
 
   if (data.email) {
@@ -57,7 +57,7 @@ export const createUser = async (data: any): Promise<any> => {
 };
 
 // SIGNUP EMAIL OTP (no pre-existing user required)
-export const createSignUpEmailOtp = async (
+ const createSignUpEmailOtp = async (
   email: string
 ): Promise<string> => {
   const otp = generateOtp();
@@ -68,7 +68,7 @@ export const createSignUpEmailOtp = async (
 };
 
 // GENERATE & SEND EMAIL OTP FOR EXISTING VERIFIED PROFILE
-export const createEmailOtp = async (email: string): Promise<string> => {
+const createEmailOtp = async (email: string): Promise<string> => {
   const otp = generateOtp();
   const user = await User.findOne({ email });
 
@@ -88,7 +88,7 @@ interface OtpResult<T = any> {
 }
 
 // VERIFY EMAIL OTP
-export const verifyEmailOtp = async (
+const verifyEmailOtp = async (
   email: string,
   inputOtp: string
 ): Promise<OtpResult> => {
@@ -160,7 +160,7 @@ export const verifyEmailOtp = async (
 };
 
 // GENERATE & SEND PHONE OTP
-export const createPhoneOtp = async ( phoneNumber: string): Promise<{ message: string }> => {
+ const createPhoneOtp = async ( phoneNumber: string): Promise<{ message: string }> => {
   const otp = generateOtp();
   const otpKey = `otp:phone:${phoneNumber}`;
 
@@ -174,7 +174,7 @@ export const createPhoneOtp = async ( phoneNumber: string): Promise<{ message: s
 };
 
 // VERIFY PHONE OTP 
-export const verifyPhoneOtp = async (phone: string,inputOtp: string): Promise<OtpResult> => {
+ const verifyPhoneOtp = async (phone: string,inputOtp: string): Promise<OtpResult> => {
   const otpKey = `otp:phone:${phone}`;
   const storedOtp = await redisClient.get(otpKey);
   if (!storedOtp) return { success: false, message: "OTP expired or not found" };
@@ -219,7 +219,7 @@ export const verifyPhoneOtp = async (phone: string,inputOtp: string): Promise<Ot
   };
 };
 
-export const updateFcmToken = async (
+const updateFcmToken = async (
   userId: string,
   fcmToken: string
 ): Promise<any> => {
@@ -229,7 +229,7 @@ export const updateFcmToken = async (
     { new: true }
   );
 };
-export const blockUserService = async (userId: string, blockedId: string) => {
+ const blockUserService = async (userId: string, blockedId: string) => {
   if (userId === blockedId) throw new Error("Cannot block yourself");
 
   const user = await User.findById(userId);
@@ -245,7 +245,7 @@ export const blockUserService = async (userId: string, blockedId: string) => {
 };
 
 // Unblock a user
-export const unblockUserService = async (userId: string, blockedId: string) => {
+ const unblockUserService = async (userId: string, blockedId: string) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
 
@@ -257,7 +257,7 @@ export const unblockUserService = async (userId: string, blockedId: string) => {
 };
 
 // Get blocked users list
-export const getBlockedUsersService = async (userId: string) => {
+ const getBlockedUsersService = async (userId: string) => {
   const user = await User.findById(userId).populate(
     "blockedUsers",
     "firstName lastName profileImage"
@@ -268,7 +268,7 @@ export const getBlockedUsersService = async (userId: string) => {
 };
 
 // Check if a user is blocked
-export const isBlockedService = async (userId: string, otherUserId: string) => {
+const isBlockedService = async (userId: string, otherUserId: string) => {
   const user = await User.findById(userId);
   if (!user) return false;
 
@@ -277,7 +277,7 @@ export const isBlockedService = async (userId: string, otherUserId: string) => {
   );
 };
 
-export const updateUserProfileService = async (
+const updateUserProfileService = async (
   userId: string,
   bodyData: any,
   files?: Express.Multer.File[]
@@ -321,3 +321,17 @@ export const updateUserProfileService = async (
 
   return updatedUser;
 };
+export const userService={
+createUser,
+createEmailOtp,
+verifyEmailOtp,
+createSignUpEmailOtp,
+createPhoneOtp,
+verifyPhoneOtp,
+blockUserService,
+unblockUserService,
+getBlockedUsersService,
+updateUserProfileService,
+updateFcmToken,
+isBlockedService
+}

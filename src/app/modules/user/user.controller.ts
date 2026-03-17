@@ -1,6 +1,6 @@
 import { fileUploader } from "../../helpers/fileUpload";
 import { sendResponse } from "../../utils/sendResponse";
-import * as userService from "./user.service";
+import {userService} from "./user.service";
 import getPlaceNameGoogle from "../../utils/getGoogleLocation";
 import { setAuthCookie } from "../../utils/setCookie";
 

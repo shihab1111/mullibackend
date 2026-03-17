@@ -3,6 +3,7 @@ import { Match } from '../Liked/match.model';
 import { Post, Comment } from '../Clubhouse/clubhouse.model';
 import { Swipe } from '../Swipe/swipe.model';
 import { Message } from '../chat/chat.model';
+import mongoose from 'mongoose';
 
 const getDashboardStats = async () => {
   const thirtyDaysAgo = new Date();
@@ -238,17 +239,92 @@ const getClubhouseWeeklyEngagement = async () => {
     },
   ]);
 
-  // Merge into scaffold
+  // ── Engagement by Playstyle per Day ────────────────────────────────────────
+  // Find all activities in the last 7 days
+  const [postsActivities, commentsActivities, swipesActivities] = await Promise.all([
+    Post.find({ createdAt: { $gte: sevenDaysAgo } }, { author: 1, createdAt: 1 }).lean(),
+    Comment.find({ createdAt: { $gte: sevenDaysAgo } }, { user: 1, createdAt: 1 }).lean(),
+    Swipe.find({ createdAt: { $gte: sevenDaysAgo } }, { fromUser: 1, createdAt: 1 }).lean()
+  ]);
+
+  const dailyActiveUsers: Record<string, Set<string>> = {};
+  scaffold.forEach(d => { dailyActiveUsers[d.date] = new Set<string>(); });
+
+  const addToDay = (date: Date, userId: string | undefined) => {
+    if (!date || !userId) return;
+    const dStr = date.toISOString().split('T')[0];
+    if (dailyActiveUsers[dStr]) {
+      dailyActiveUsers[dStr].add(userId);
+    }
+  };
+
+  postsActivities.forEach(p => addToDay(p.createdAt, p.author?.toString()));
+  commentsActivities.forEach(c => addToDay(c.createdAt, c.user?.toString()));
+  swipesActivities.forEach(s => addToDay(s.createdAt, s.fromUser?.toString()));
+
+  const allUniqueUserIds = new Set<string>();
+  Object.values(dailyActiveUsers).forEach(set => {
+    set.forEach(id => allUniqueUserIds.add(id));
+  });
+
+  const uniqueEngagedUserIds = Array.from(allUniqueUserIds);
+
+  const engagedUsers = await User.find(
+    { _id: { $in: uniqueEngagedUserIds.map(id => new mongoose.Types.ObjectId(id)) } },
+    { playstyle: 1 }
+  ).lean();
+
+  const userPlaystyleMap: Record<string, string> = {};
+  engagedUsers.forEach(u => {
+    userPlaystyleMap[u._id.toString()] = u.playstyle || 'Unknown';
+  });
+
+  let golfBuddyEngagedCount = 0;
+  let golfDateEngagedCount = 0;
+
+  uniqueEngagedUserIds.forEach(id => {
+    if (userPlaystyleMap[id] === 'Golf_Buddy') golfBuddyEngagedCount++;
+    else if (userPlaystyleMap[id] === 'Golf_Date') golfDateEngagedCount++;
+  });
+
+  // Merge into scaffold & count daily distinct playstyles
   const weeklyEngagement = scaffold.map(day => {
     const postData = postsByDay.find(p => p._id === day.date);
     const commentData = commentsByDay.find(c => c._id === day.date);
+    
+    let dailyGolfBuddyCount = 0;
+    let dailyGolfDateCount = 0;
+
+    dailyActiveUsers[day.date].forEach(userId => {
+      if (userPlaystyleMap[userId] === 'Golf_Buddy') dailyGolfBuddyCount++;
+      else if (userPlaystyleMap[userId] === 'Golf_Date') dailyGolfDateCount++;
+    });
+
     return {
       ...day,
       totalPosts: postData?.totalPosts ?? 0,
       totalLikes: postData?.totalLikes ?? 0,
       totalComments: commentData?.totalComments ?? 0,
+      golfBuddyEngaged: dailyGolfBuddyCount,
+      golfDateEngaged: dailyGolfDateCount
     };
   });
+
+  const totalEngaged = uniqueEngagedUserIds.length;
+  const golfBuddyPercentage = totalEngaged > 0 ? (golfBuddyEngagedCount / totalEngaged) * 100 : 0;
+  const golfDatePercentage = totalEngaged > 0 ? (golfDateEngagedCount / totalEngaged) * 100 : 0;
+
+  const engagement = {
+    totalEngagedUsers: totalEngaged,
+    golfBuddy: {
+      count: golfBuddyEngagedCount,
+      percentageOfEngagedUsers: Math.round(golfBuddyPercentage * 100) / 100
+    },
+    golfDate: {
+      count: golfDateEngagedCount,
+      percentageOfEngagedUsers: Math.round(golfDatePercentage * 100) / 100
+    }
+  };
 
   // ── Match Success Rate: this month vs last month ───────────────────────────
   const now = new Date();
@@ -345,6 +421,7 @@ const getClubhouseWeeklyEngagement = async () => {
 
   return {
     weeklyEngagement,
+    engagement,
     matchSuccessRate: {
       thisMonth: thisMonthRate,
       lastMonth: lastMonthRate,
