@@ -9,6 +9,7 @@ import { matchRoutes } from "../modules/Liked/match.routes";
 import { chatRoutes } from "../modules/chat/chat.route";
 import { subscriptionRoutes } from "../modules/subscription/subscription.routes";
 import { dashboardRoutes } from "../modules/Dashboard/dashbaord.routes";
+import { notificationRoutes } from "../modules/notification/notification.router";
 
 
 const router = express.Router();
@@ -50,6 +51,10 @@ const moduleRoutes = [
     path: "/dashboard",
     route: dashboardRoutes,
   },
+  {
+    path:"/notification",
+    route:notificationRoutes
+  }
   
   
 ];

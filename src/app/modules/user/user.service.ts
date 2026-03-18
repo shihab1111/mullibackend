@@ -229,6 +229,7 @@ const updateFcmToken = async (
     { new: true }
   );
 };
+
  const blockUserService = async (userId: string, blockedId: string) => {
   if (userId === blockedId) throw new Error("Cannot block yourself");
 

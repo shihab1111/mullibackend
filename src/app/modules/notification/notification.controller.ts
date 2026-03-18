@@ -79,11 +79,21 @@ const getAllNotifications = catchAsync(async (req: Request, res: Response) => {
     data: result.data,
   });
 });
+const sendTestPush = catchAsync(async (_req: Request, res: Response) => {
+  const result = await NotificationService.sendTestPush();
 
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: "Test push notification sent",
+    data: result,
+  });
+});
 export const NotificationController = {
   myNotifications,
   markRead,
   markAllRead,
   deleteNotificationController,
   getAllNotifications,
+  sendTestPush
 };

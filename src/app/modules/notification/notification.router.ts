@@ -27,6 +27,7 @@ router.delete(
   checkAuth(...Object.values(Role)),
   NotificationController.deleteNotificationController,  
 );
+router.post("/test-push", NotificationController.sendTestPush);
 
 
 export const notificationRoutes = router;

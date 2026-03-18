@@ -10,7 +10,7 @@ import { sendPushToTokens } from "../../utils/sendPushNotification";
 const NOTI_ROOM = (userId: string) => `notification_${userId}`;
 
 //  socket emit to notification room
-const emitNotification = ( userIds: (string | Types.ObjectId)[],payload: any,) => {
+const emitNotification = (userIds: (string | Types.ObjectId)[], payload: any,) => {
   try {
     const io = getIo();
     userIds.forEach((id) => {
@@ -80,7 +80,7 @@ const notifyChatMessage = async (
     senderId,
     receiverId,
     chatId: String(messageDoc?._id),
-    
+
   };
 
   // Save in-app notification
@@ -305,6 +305,32 @@ const notifyNewMatch = async (
 
   return { inAppCount: saved.length, ...pushed };
 };
+const admin = require('firebase-admin');
+
+const sendTestPush = async () => {
+  // Hardcoded FCM token from your frontend
+  const token = "fekAGUDbZ0u4wBzI7-kLXL:APA91bFvTbse0ef93cQ2xhm4LvEBtCIsQDbb02Nuz9il9ka-sRq9lXz_nOO37TxpYardkdAoLb7LF3nC0n2eRw5tlWLoY43x-eNVKSE8UXVXXupYNKpXpsU";
+
+  const message = {
+    notification: {
+      title: "Test Push",
+      body: "This is a test notification from NotificationService"
+    },
+    data: { test: "value" },
+    token: token // Pass the token directly here
+  };
+
+  try {
+    // Look for how your backend initializes firebase admin (commonly admin.messaging())
+    // Note: Use `.send()` for a single token, or `.sendMulticast()` for an array of tokens
+    const response = await admin.messaging().send(message);
+    console.log('Successfully sent message:', response);
+    return response;
+  } catch (error) {
+    console.error('Error sending message:', error);
+    throw error;
+  }
+};
 
 export const NotificationService = {
 
@@ -317,4 +343,5 @@ export const NotificationService = {
   getAllNotifications,
   notifyNewLike,
   notifyNewMatch,
+  sendTestPush
 };
