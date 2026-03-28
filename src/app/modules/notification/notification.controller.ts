@@ -7,12 +7,12 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 
 const myNotifications = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.user as JwtPayload;
+  const { id} = req.user as JwtPayload;
   const result = await NotificationService.getMyNotifications(
-    userId,
+    id,
     req.query as any,
   );
-
+console.log(id)
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -23,10 +23,10 @@ const myNotifications = catchAsync(async (req: Request, res: Response) => {
 });
 
 const markRead = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.user as JwtPayload;
+  const { id } = req.user as JwtPayload;
   const { notificationId } = req.params;
 
-  await NotificationService.markAsRead(userId, notificationId as string);
+  await NotificationService.markAsRead(id, notificationId as string);
 
   sendResponse(res, {
     success: true,
@@ -37,9 +37,9 @@ const markRead = catchAsync(async (req: Request, res: Response) => {
 });
 
 const markAllRead = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.user as JwtPayload;
+  const { id } = req.user as JwtPayload;
 
-  const result = await NotificationService.markAllRead(userId);
+  const result = await NotificationService.markAllRead(id);
 
   sendResponse(res, {
     success: true,

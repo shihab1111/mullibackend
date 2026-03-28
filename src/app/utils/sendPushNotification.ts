@@ -24,7 +24,7 @@ export const sendPushToTokens = async (
     notification: { title, body },
     data: toStringMap(data),
   });
-
+console.log(res)
   return {
     successCount: res.successCount,
     failureCount: res.failureCount,

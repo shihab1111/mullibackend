@@ -219,15 +219,14 @@ const verifyEmailOtp = async (
   };
 };
 
-const updateFcmToken = async (
-  userId: string,
-  fcmToken: string
-): Promise<any> => {
-  return User.findByIdAndUpdate(
+const updateFcmToken = async (userId: string,fcmToken: string): Promise<string[]> => {
+  const user = await User.findByIdAndUpdate(
     userId,
     { $addToSet: { fcmTokens: fcmToken } },
-    { new: true }
+    { new: true, select: "fcmTokens" } 
   );
+
+  return user?.fcmTokens || [];
 };
 
  const blockUserService = async (userId: string, blockedId: string) => {

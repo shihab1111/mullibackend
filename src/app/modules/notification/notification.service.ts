@@ -52,7 +52,7 @@ const pushToUserIds = async (
   const tokens = users.flatMap((u: any) => u.fcmTokens || []).filter(Boolean);
 
   if (!tokens.length) return { successCount: 0, failureCount: 0 };
-
+console.log( tokens)
   //  important: data must be string or firebase will fail
   return sendPushToTokens(tokens, title, body, data);
 };
@@ -112,26 +112,26 @@ const getMyNotifications = async (
   userId: string,
   query: Record<string, string>,
 ) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 20), 1), 100);
-  const skip = (page - 1) * limit;
+  // const page = Math.max(Number(query.page || 1), 1);
+  // const limit = Math.min(Math.max(Number(query.limit || 20), 1), 100);
+  // const skip = (page - 1) * limit;
 
   const userObjectId = new Types.ObjectId(userId); // ✅ convert to ObjectId
 
   const [data, total] = await Promise.all([
     Notification.find({ user: userObjectId })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
+      .sort({ createdAt: -1 }),
+      // .skip(skip)
+      // .limit(limit),
     Notification.countDocuments({ user: userObjectId }),
   ]);
 
   return {
     meta: {
-      page,
-      limit,
+      // page,
+      // limit,
       total,
-      totalPage: Math.ceil(total / limit),
+      // totalPage: Math.ceil(total / limit),
     },
     data,
   };
@@ -309,7 +309,7 @@ const admin = require('firebase-admin');
 
 const sendTestPush = async () => {
   // Hardcoded FCM token from your frontend
-  const token = "fekAGUDbZ0u4wBzI7-kLXL:APA91bFvTbse0ef93cQ2xhm4LvEBtCIsQDbb02Nuz9il9ka-sRq9lXz_nOO37TxpYardkdAoLb7LF3nC0n2eRw5tlWLoY43x-eNVKSE8UXVXXupYNKpXpsU";
+  const token = "c0B6k3_ARjWTolXR50hPcr:APA91bF8r1U9_X0G9bdNiJkCoE230edj5n3kIyjHJAdkljLFB4ZLVSKndXH0KWu4ILuLETbcz7mAqlElBadm5fsG8UoZywO2pShIsD7cITkmZnD7odPzgBA";
 
   const message = {
     notification: {

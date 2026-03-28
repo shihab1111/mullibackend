@@ -18,7 +18,7 @@ router.post("/signup/phone/verify", userControllers.verifyPhoneOtp);
 // Complete User Profile
 router.patch("/profile/complete",fileUploader.upload.array("image", 6),userControllers.createUser);
 
-router.patch("/update-fcm-token",checkAuth(Role.USER, Role.ADMIN),userControllers.updateFcmToken);
+router.patch("/update-fcm-token",checkAuth(...Object.values(Role)),userControllers.updateFcmToken);
 
 router.post("/block",checkAuth(...Object.values(Role)) ,blockUser);      // Block a user
 router.post("/unblock",checkAuth(...Object.values(Role)), unblockUser);  // Unblock a user

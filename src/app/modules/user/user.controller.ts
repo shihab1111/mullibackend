@@ -44,7 +44,10 @@ const createUser = catchAsync(
           placeName: name,
         };
       }
-
+if (bodyData.fcmToken) {
+  bodyData.fcmTokens = [bodyData.fcmToken]; // convert to array
+  delete bodyData.fcmToken; // optional cleanup
+}
       const userData = await userService.createUser(bodyData);
 
       if (userData.accessToken || userData.refreshToken) {
@@ -205,7 +208,7 @@ const verifyPhoneOtp = catchAsync(async (req: Request, res: Response) => {
 const updateFcmToken = catchAsync(async (req: Request, res: Response) => {
   const { fcmToken } = req.body;
   const user = (req as any).user; // Assuming auth middleware attaches user
-
+console.log(user)
   if (!fcmToken) {
     return sendResponse(res, {
       statusCode: 400,
@@ -215,13 +218,13 @@ const updateFcmToken = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  const result = await userService.updateFcmToken(user?._id || req.body.userId, fcmToken);
+  const result = await userService.updateFcmToken(user?.id || req.body.userId, fcmToken);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: "FCM token updated successfully",
-    data: result,
+    data: "Done",
   });
 });
 
