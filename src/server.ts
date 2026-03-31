@@ -3,10 +3,10 @@ import http from "http";
 import app from "./app";
 import { envVars } from "./app/config/env";
 import { connectRedis } from "./app/config/redis.config";
-import { initFirebase } from "./app/config/firebase.config";
+// import { initFirebase } from "./app/config/firebase.config";
 
 
-initFirebase();
+// initFirebase();
 let server: http.Server;
 
 server = http.createServer(app);

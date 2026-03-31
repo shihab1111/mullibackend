@@ -23,7 +23,7 @@ export const initFirebase = () => {
   const serviceAccount = JSON.parse(fs.readFileSync(resolved, "utf8"));
 
   console.log(
-    "✅ Firebase Admin initialized with project_id:",
+   
     serviceAccount.project_id,
   );
 
