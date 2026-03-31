@@ -2,14 +2,6 @@ import express from "express";
 
 import { userRoutes } from "../modules/user/user.routes";
 import { authRoutes } from "../modules/auth/auth.routes";
-import { clubhouseRoutes } from "../modules/Clubhouse/clubhouse.routes";
-import { discoveryRoutes } from "../modules/Discovery/discovery.routes";
-import { swipeRouter } from "../modules/Swipe/swipe.routes";
-import { matchRoutes } from "../modules/Liked/match.routes";
-import { chatRoutes } from "../modules/chat/chat.route";
-import { subscriptionRoutes } from "../modules/subscription/subscription.routes";
-import { dashboardRoutes } from "../modules/Dashboard/dashbaord.routes";
-import { notificationRoutes } from "../modules/notification/notification.router";
 import { emailRouter } from "../modules/Waitlist/waitlist.route";
 
 
@@ -23,38 +15,6 @@ const moduleRoutes = [
   {
     path: "/auth",
     route: authRoutes,
-  },
-  {
-    path: "/clubhouse",
-    route: clubhouseRoutes,
-  },
-  {
-    path: "/discovery",
-    route: discoveryRoutes,
-  },
-  {
-    path: "/swipe",
-    route: swipeRouter,
-  },
-  {
-    path: "/match",
-    route: matchRoutes,
-  },
-  {
-    path: "/chat",
-    route: chatRoutes,
-  },
-  {
-    path: "/subscription",
-    route: subscriptionRoutes,
-  },
-  {
-    path: "/dashboard",
-    route: dashboardRoutes,
-  },
-  {
-    path:"/notification",
-    route:notificationRoutes
   },
   {
         path:"/waitlists",

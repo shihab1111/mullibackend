@@ -7,9 +7,14 @@ export const addEmail = async (req:Request, res:Response) => {
   if (!email) return res.status(400).json({ message: "Email required" });
 
   try {
+    const existingEmail = await Email.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: "This email is already on the waitlist!" });
+    }
+
     const newEmail = new Email({ email });
     await newEmail.save();
-    res.json({ message: "Email saved!" });
+    res.json({ message: "You have joined the waitlist!" });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
